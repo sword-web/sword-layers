@@ -20,6 +20,7 @@ tower-http = { version = "0.6.8", features = [
     "cors",
     "fs",
     "compression-full",
+    "request-id",
 ] }
 
 tower-layer = "0.3.3"

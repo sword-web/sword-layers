@@ -13,6 +13,16 @@ This crate provides a collection of **Tower middleware layers** with built-in co
 | **CORS**            | Cross-Origin Resource Sharing configuration   | Controls which origins, methods, and headers are allowed for cross-origin requests |
 | **Request Timeout** | Enforces maximum request duration             | Prevents hung connections and timeouts incomplete requests                         |
 | **Serve Directory** | Serves static files and directories           | Provides efficient static content delivery with optional compression               |
+| **Helmet**          | Security headers middleware                   | Adds security-related HTTP headers to protect against common web vulnerabilities   |
+| **Cookies**         | Cookie management middleware                  | Simplifies cookie handling in requests and responses                               |
+| **Request ID**      | Assigns unique IDs to requests                | Facilitates request tracing and logging                                            |
+
+## Coming Soon layers
+
+| Layer             | Description                              | Purpose                                                         |
+| ----------------- | ---------------------------------------- | --------------------------------------------------------------- |
+| **Rate Limiting** | Limits the number of requests per client | Protects against abuse by limiting request rates per IP or user |
+| **Logging**       | Request and response logging middleware  | Logs HTTP requests and responses for monitoring and debugging   |
 
 ## Configuration Pattern
 
@@ -22,7 +32,7 @@ Each layer follows a consistent configuration pattern:
 // Each layer has:
 // 1. A configuration struct (e.g., BodyLimitConfig)
 // 2. A layer struct with a `new()` method that accepts the config (e.g., BodyLimitLayer)
-// 3. Standardized error responses using sword-responses
+// 3. Standardized error responses
 
 pub struct LayerConfig {
     pub enabled: bool,
