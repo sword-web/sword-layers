@@ -39,6 +39,21 @@ impl DisplayConfig for RequestTimeoutConfig {
     }
 }
 
+impl Default for RequestTimeoutConfig {
+    fn default() -> Self {
+        let duration_str = "30s".to_string();
+        let parsed_duration =
+            parse_duration(&duration_str).unwrap_or_else(|_| Duration::from_secs(30));
+
+        RequestTimeoutConfig {
+            enabled: false,
+            duration: duration_str,
+            parsed: parsed_duration,
+            display: false,
+        }
+    }
+}
+
 impl<'de> Deserialize<'de> for RequestTimeoutConfig {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
