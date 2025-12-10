@@ -1,60 +1,36 @@
-use axum::{
-    http::StatusCode,
-    response::{IntoResponse, Response},
-};
-
-use axum_responses::JsonResponse;
+use duration_str::parse as parse_duration;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
-use tower::{ServiceBuilder, util::MapResponseLayer};
-use tower_http::timeout::TimeoutLayer as TowerTimeoutLayer;
-use tower_layer::{Identity, Stack};
 
-use crate::ResponseFnMapper;
+use crate::DisplayConfig;
 
-pub struct TimeoutLayer;
-
-type TimeoutLayerType = (
-    TowerTimeoutLayer,
-    ServiceBuilder<Stack<MapResponseLayer<ResponseFnMapper>, Identity>>,
-);
-
-#[allow(clippy::new_ret_no_self)]
-impl TimeoutLayer {
-    pub fn new(duration: Duration) -> TimeoutLayerType {
-        let layer = TowerTimeoutLayer::with_status_code(StatusCode::REQUEST_TIMEOUT, duration);
-
-        fn timeout_mapper(response: Response) -> Response {
-            if response.status().as_u16() == 408 {
-                return JsonResponse::RequestTimeout().into_response();
-            }
-
-            response
-        }
-
-        let response_layer = ServiceBuilder::new().map_response(timeout_mapper as ResponseFnMapper);
-
-        (layer, response_layer)
-    }
-}
-
+/// ### Request Timeout Configuration
+/// Configuration for the Request Timeout Layer
+/// This configuration allows you to set a maximum duration for request handling.
+///
+/// #### Fields:
+/// - `enabled`: A boolean indicating if request timeout is enabled.
+/// - `duration`: A string representing the timeout duration (e.g., "30s", "5m").
+/// - `parsed`: The parsed duration in std::time::Duration derived from `duration`.
+/// - `display`: A boolean indicating if the configuration should be displayed.
 #[derive(Debug, Clone, Serialize)]
-pub struct TimeoutLimit {
+pub struct RequestTimeoutConfig {
     pub enabled: bool,
     pub duration: String,
+
     #[serde(skip)]
     pub parsed: Duration,
 
-    #[serde(default = "default_display")]
+    #[serde(default)]
     pub display: bool,
 }
 
-fn default_display() -> bool {
-    false
-}
+impl DisplayConfig for RequestTimeoutConfig {
+    fn display(&self) {
+        if !self.display {
+            return;
+        }
 
-impl TimeoutLimit {
-    pub fn display(&self) {
         if self.enabled {
             println!("  ↳  Request Timeout: {}", self.duration);
         } else {
@@ -63,7 +39,7 @@ impl TimeoutLimit {
     }
 }
 
-impl<'de> Deserialize<'de> for TimeoutLimit {
+impl<'de> Deserialize<'de> for RequestTimeoutConfig {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -74,7 +50,7 @@ impl<'de> Deserialize<'de> for TimeoutLimit {
         struct TimeoutLimitVisitor;
 
         impl<'de> Visitor<'de> for TimeoutLimitVisitor {
-            type Value = TimeoutLimit;
+            type Value = RequestTimeoutConfig;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 formatter.write_str(
@@ -103,33 +79,18 @@ impl<'de> Deserialize<'de> for TimeoutLimit {
                 }
 
                 let enabled = enabled.ok_or_else(|| Error::missing_field("enabled"))?;
-
                 let duration: String = duration.ok_or_else(|| Error::missing_field("duration"))?;
+                let parsed = parse_duration(&duration).map_err(Error::custom)?;
 
-                let parsed = duration_str::parse(&duration).map_err(Error::custom)?;
-
-                Ok(TimeoutLimit {
+                Ok(RequestTimeoutConfig {
                     enabled,
                     duration,
                     parsed,
-                    display: display.unwrap_or_else(default_display),
+                    display: display.unwrap_or_else(|| false),
                 })
             }
         }
 
         deserializer.deserialize_any(TimeoutLimitVisitor)
-    }
-}
-
-impl Default for TimeoutLimit {
-    fn default() -> Self {
-        let duration = "30s".to_string();
-        let parsed = duration_str::parse(&duration).unwrap();
-        TimeoutLimit {
-            enabled: false,
-            duration,
-            parsed,
-            display: default_display(),
-        }
     }
 }

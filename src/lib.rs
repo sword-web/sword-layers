@@ -1,29 +1,50 @@
 pub mod helmet;
-mod limits;
 
-pub type ResponseFnMapper =
-    fn(axum::http::Response<axum::body::Body>) -> axum::http::Response<axum::body::Body>;
+use axum::{body::Body, http::Response};
 
-define_layer_mod!(compression);
-define_layer_mod!(servedir);
-define_layer_mod!(cors);
+pub(crate) type ResponseFnMapper = fn(Response<Body>) -> Response<Body>;
 
-// define_layer_mod("compression");
-// generates:
-// mod compression {
-//    mod layer;
-//    pub use layer::*;
-//    mod config;
-//    pub use config::*;
-// }
+pub mod compression {
+    mod config;
 
-macro_rules! define_layer_mod {
-    ($layer_name:ident) => {
-        mod $layer_name {
-            mod layer;
-            pub use layer::*;
-            mod config;
-            pub use config::*;
-        }
-    };
+    mod layer;
+
+    pub use config::CompressionConfig;
+    pub use layer::CompressionLayer;
+}
+
+pub mod cors {
+    mod config;
+    mod layer;
+
+    pub use config::CorsConfig;
+    pub use layer::CorsLayer;
+}
+
+pub mod servedir {
+    mod config;
+    mod layer;
+
+    pub use config::ServeDirConfig;
+    pub use layer::ServeDirLayer;
+}
+
+pub mod body_limit {
+    mod config;
+    mod layer;
+
+    pub use config::BodyLimitConfig;
+    pub use layer::BodyLimitLayer;
+}
+
+pub mod req_timeout {
+    mod config;
+    mod layer;
+
+    pub use config::RequestTimeoutConfig;
+    pub use layer::RequestTimeoutLayer;
+}
+
+pub trait DisplayConfig {
+    fn display(&self);
 }
