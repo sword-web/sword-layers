@@ -1,4 +1,4 @@
-use crate::ResponseFnMapper;
+use crate::{ResponseFnMapper, body_limit::BodyLimitConfig};
 
 use axum_responses::JsonResponse;
 use tower::{
@@ -28,7 +28,7 @@ type BodyLimitLayerType = ServiceBuilder<
 pub struct BodyLimitLayer;
 
 impl BodyLimitLayer {
-    pub fn new(limit: usize) -> BodyLimitLayerType {
+    pub fn new(config: &BodyLimitConfig) -> BodyLimitLayerType {
         fn map_body_limit_response(r: Response<Body>) -> Response<Body> {
             if r.status().as_u16() != 413 {
                 return r;
@@ -40,7 +40,7 @@ impl BodyLimitLayer {
         }
 
         ServiceBuilder::new()
-            .layer(RequestBodyLimitLayer::new(limit))
-            .map_response(map_body_limit_response as fn(Response<Body>) -> Response<Body>)
+            .layer(RequestBodyLimitLayer::new(config.parsed))
+            .map_response(map_body_limit_response as ResponseFnMapper)
     }
 }

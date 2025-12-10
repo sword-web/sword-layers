@@ -1,4 +1,5 @@
 use byte_unit::Byte;
+use console::style;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
@@ -28,6 +29,7 @@ pub struct BodyLimitConfig {
 impl DisplayConfig for BodyLimitConfig {
     fn display(&self) {
         if self.display {
+            println!("\n{}", style("Body Limit Configuration:").bold());
             println!("  ↳  Max Body Size: {}", self.max_size);
         }
     }

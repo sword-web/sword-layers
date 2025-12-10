@@ -13,16 +13,16 @@ use tower_http::services::{ServeDir, ServeFile};
 pub struct ServeDirLayer;
 
 impl ServeDirLayer {
-    pub fn new(config: ServeDirConfig) -> ServeDir<ServeFile> {
+    pub fn new(config: &ServeDirConfig) -> ServeDir<ServeFile> {
         let mut fallback = ServeFile::new(format!("{}/404.html", config.static_dir));
 
-        if let Some(not_found_file) = config.not_found_file {
+        if let Some(not_found_file) = &config.not_found_file {
             fallback = ServeFile::new(format!("{}/{not_found_file}", config.static_dir));
         }
 
-        let mut layer = ServeDir::new(config.static_dir).fallback(fallback);
+        let mut layer = ServeDir::new(&config.static_dir).fallback(fallback);
 
-        if let Some(algorithm) = config.compression_algorithm {
+        if let Some(algorithm) = &config.compression_algorithm {
             match algorithm.as_str() {
                 "br" => {
                     layer = layer.precompressed_br();

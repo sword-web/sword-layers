@@ -1,4 +1,4 @@
-use crate::ResponseFnMapper;
+use crate::{ResponseFnMapper, req_timeout::RequestTimeoutConfig};
 
 use axum::{
     http::StatusCode,
@@ -6,7 +6,6 @@ use axum::{
 };
 
 use axum_responses::JsonResponse;
-use std::time::Duration;
 use tower::{ServiceBuilder, util::MapResponseLayer};
 use tower_http::timeout::TimeoutLayer as TowerTimeoutLayer;
 use tower_layer::{Identity, Stack};
@@ -26,8 +25,8 @@ type TimeoutLayerType = (
 pub struct RequestTimeoutLayer;
 
 impl RequestTimeoutLayer {
-    pub fn new(duration: Duration) -> TimeoutLayerType {
-        let layer = TowerTimeoutLayer::with_status_code(StatusCode::REQUEST_TIMEOUT, duration);
+    pub fn new(config: &RequestTimeoutConfig) -> TimeoutLayerType {
+        let layer = TowerTimeoutLayer::with_status_code(StatusCode::REQUEST_TIMEOUT, config.parsed);
 
         fn timeout_mapper(response: Response) -> Response {
             if response.status().as_u16() == 408 {

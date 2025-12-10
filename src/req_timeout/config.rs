@@ -1,3 +1,4 @@
+use console::style;
 use duration_str::parse as parse_duration;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -30,6 +31,8 @@ impl DisplayConfig for RequestTimeoutConfig {
         if !self.display {
             return;
         }
+
+        println!("\n{}", style("Request Timeout Configuration:").bold());
 
         if self.enabled {
             println!("  ↳  Request Timeout: {}", self.duration);

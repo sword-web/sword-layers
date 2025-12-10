@@ -14,7 +14,7 @@ use tower_http::compression::CompressionLayer as TowerCompressionLayer;
 pub struct CompressionLayer;
 
 impl CompressionLayer {
-    pub fn new(config: CompressionConfig) -> TowerCompressionLayer {
+    pub fn new(config: &CompressionConfig) -> TowerCompressionLayer {
         let mut layer = TowerCompressionLayer::new();
 
         for algorithm in &config.algorithms {
