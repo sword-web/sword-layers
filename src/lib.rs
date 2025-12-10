@@ -1,12 +1,13 @@
+mod content_type;
 pub mod helmet;
 
 use axum::{body::Body, http::Response};
+pub use content_type::ContentTypeCheck;
 
 pub(crate) type ResponseFnMapper = fn(Response<Body>) -> Response<Body>;
 
 pub mod compression {
     mod config;
-
     mod layer;
 
     pub use config::CompressionConfig;
