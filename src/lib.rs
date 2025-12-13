@@ -10,7 +10,10 @@ pub mod cookies {
 }
 
 pub mod request_id {
-    pub use tower_http::request_id::*;
+    mod layer;
+
+    pub use layer::{RequestId, RequestIdLayer};
+    pub use uuid::Uuid;
 }
 
 pub mod compression {
