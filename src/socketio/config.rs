@@ -1,7 +1,8 @@
 use crate::utils::*;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(default)]
 pub struct SocketIoServerConfig {
     /// Whether to enable the Socket.IO server.
     /// Defaults to false.
