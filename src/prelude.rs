@@ -6,3 +6,6 @@ pub use crate::helmet;
 pub use crate::req_timeout::*;
 pub use crate::request_id::*;
 pub use crate::servedir::*;
+pub use crate::socketio::*;
+
+pub use crate::DisplayConfig;
