@@ -1,6 +1,4 @@
 use super::ServeDirConfig;
-
-use byte_unit::Byte;
 use tower_http::services::{ServeDir, ServeFile};
 
 /// ### Serve Directory Layer
@@ -40,10 +38,8 @@ impl ServeDirLayer {
             }
         }
 
-        if let Some(chunk_size_str) = &config.chunk_size
-            && let Ok(chunk_size) = chunk_size_str.parse::<Byte>()
-        {
-            layer = layer.with_buf_chunk_size(chunk_size.as_u64() as usize);
+        if let Some(chunk_size) = &config.chunk_size {
+            layer = layer.with_buf_chunk_size(chunk_size.parsed);
         }
 
         layer

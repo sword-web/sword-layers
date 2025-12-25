@@ -1,30 +1,37 @@
+use crate::DisplayConfig;
 use console::style;
 use serde::{Deserialize, Serialize};
-
-use crate::DisplayConfig;
 
 /// ### CORS Configuration
 /// Configuration for the CORS Layer
 /// This configuration allows you to control cross-origin resource sharing policies.
-///
-/// #### Fields:
-/// - `enabled`: A boolean indicating if CORS is enabled.
-/// - `allow_origins`: A list of allowed origins for cross-origin requests.
-/// - `allow_methods`: A list of allowed HTTP methods (e.g., "GET", "POST").
-/// - `allow_headers`: A list of allowed HTTP headers.
-/// - `allow_credentials`: A boolean indicating if credentials are allowed in cross-origin requests.
-/// - `max_age`: The maximum age in seconds for CORS preflight responses.
-/// - `display`: A boolean indicating if the configuration should be displayed.
-#[derive(Clone, Debug, Deserialize, Serialize, Default)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(default)]
 pub struct CorsConfig {
+    /// Boolean indicating if CORS is enabled.
     pub enabled: bool,
+
+    /// A list of allowed origins for cross-origin requests.
+    #[serde(rename = "allow-origins")]
     pub allow_origins: Option<Vec<String>>,
+
+    /// A list of allowed HTTP methods (e.g., "GET", "POST").
+    #[serde(rename = "allow-methods")]
     pub allow_methods: Option<Vec<String>>,
+
+    /// A list of allowed HTTP headers.
+    #[serde(rename = "allow-headers")]
     pub allow_headers: Option<Vec<String>>,
+
+    /// A boolean indicating if credentials are allowed in cross-origin requests.
+    #[serde(rename = "allow-credentials")]
     pub allow_credentials: Option<bool>,
+
+    /// The maximum age in seconds for CORS preflight responses.
+    #[serde(rename = "max-age")]
     pub max_age: Option<u64>,
 
-    #[serde(default)]
+    /// Whether to display the configuration details.
     pub display: bool,
 }
 
@@ -56,6 +63,20 @@ impl DisplayConfig for CorsConfig {
 
         if let Some(max_age) = self.max_age {
             println!("  ↳  Max Age: {max_age}s");
+        }
+    }
+}
+
+impl Default for CorsConfig {
+    fn default() -> Self {
+        CorsConfig {
+            enabled: false,
+            allow_origins: None,
+            allow_methods: None,
+            allow_headers: None,
+            allow_credentials: None,
+            max_age: None,
+            display: false,
         }
     }
 }

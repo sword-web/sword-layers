@@ -1,28 +1,21 @@
+use crate::DisplayConfig;
 use console::style;
 use serde::{Deserialize, Serialize};
 
-use crate::DisplayConfig;
-
 /// ### Compression Configuration
+///
 /// Configuration for the Compression Layer
 /// This configuration allows you to enable or disable compression
 /// and specify which algorithms to use.
-///
-/// #### Fields:
-/// - `enabled`: A boolean indicating if compression is enabled.
-/// - `algorithms`: A list of strings representing the compression algorithms to use
-/// (e.g., "gzip", "deflate", "br", "zstd")
-///
-/// - `display`: A boolean indicating if the configuration should be displayed.
-#[derive(Debug, Clone, Deserialize, Serialize, Default)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(default)]
 pub struct CompressionConfig {
-    #[serde(default)]
+    /// A boolean indicating if compression is enabled.
     pub enabled: bool,
-
-    #[serde(default)]
+    /// A list of strings representing the compression algorithms to use
+    /// (e.g., "gzip", "deflate", "br", "zstd
     pub algorithms: Vec<String>,
-
-    #[serde(default)]
+    /// Whether to display the configuration details.
     pub display: bool,
 }
 
@@ -42,6 +35,16 @@ impl DisplayConfig for CompressionConfig {
             }
         } else {
             println!("  ↳  {}", style("Compression: disabled").red());
+        }
+    }
+}
+
+impl Default for CompressionConfig {
+    fn default() -> Self {
+        CompressionConfig {
+            enabled: false,
+            algorithms: Vec::new(),
+            display: false,
         }
     }
 }

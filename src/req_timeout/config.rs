@@ -1,28 +1,21 @@
+use crate::{DisplayConfig, utils::TimeConfig};
 use console::style;
 use duration_str::parse as parse_duration;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
-use crate::DisplayConfig;
-
 /// ### Request Timeout Configuration
+///
 /// Configuration for the Request Timeout Layer
 /// This configuration allows you to set a maximum duration for request handling.
-///
-/// #### Fields:
-/// - `enabled`: A boolean indicating if request timeout is enabled.
-/// - `duration`: A string representing the timeout duration (e.g., "30s", "5m").
-/// - `parsed`: The parsed duration in std::time::Duration derived from `duration`.
-/// - `display`: A boolean indicating if the configuration should be displayed.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
 pub struct RequestTimeoutConfig {
+    /// Boolean indicating if request timeout is enabled. Defaults to false.
     pub enabled: bool,
-    pub duration: String,
-
-    #[serde(skip)]
-    pub parsed: Duration,
-
-    #[serde(default)]
+    /// The timeout duration as a string (e.g., "30s", "1m"). Defaults to "15s".
+    pub timeout: TimeConfig,
+    /// Whether to display the configuration details. Defaults to false.
     pub display: bool,
 }
 
@@ -35,7 +28,7 @@ impl DisplayConfig for RequestTimeoutConfig {
         println!("\n{}", style("Request Timeout Configuration:").bold());
 
         if self.enabled {
-            println!("  ↳  Request Timeout: {}", self.duration);
+            println!("  ↳  Request Timeout: {}", self.timeout.raw);
         } else {
             println!("  ↳  Request Timeout: disabled");
         }
@@ -44,71 +37,17 @@ impl DisplayConfig for RequestTimeoutConfig {
 
 impl Default for RequestTimeoutConfig {
     fn default() -> Self {
-        let duration_str = "30s".to_string();
+        let duration_str = "15s".to_string();
         let parsed_duration =
-            parse_duration(&duration_str).unwrap_or_else(|_| Duration::from_secs(30));
+            parse_duration(&duration_str).unwrap_or_else(|_| Duration::from_secs(15));
 
         RequestTimeoutConfig {
             enabled: false,
-            duration: duration_str,
-            parsed: parsed_duration,
+            timeout: TimeConfig {
+                parsed: parsed_duration,
+                raw: duration_str,
+            },
             display: false,
         }
-    }
-}
-
-impl<'de> Deserialize<'de> for RequestTimeoutConfig {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        use serde::de::{Error, MapAccess, Visitor};
-        use std::fmt;
-
-        struct TimeoutLimitVisitor;
-
-        impl<'de> Visitor<'de> for TimeoutLimitVisitor {
-            type Value = RequestTimeoutConfig;
-
-            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                formatter.write_str(
-                    "a map with 'enabled' (bool), 'duration' (string), and optional 'display' (bool) fields",
-                )
-            }
-
-            // Deserialize from a map/object
-            fn visit_map<M>(self, mut map: M) -> Result<Self::Value, M::Error>
-            where
-                M: MapAccess<'de>,
-            {
-                let mut enabled = None;
-                let mut duration = None;
-                let mut display = None;
-
-                while let Some(key) = map.next_key::<String>()? {
-                    match key.as_str() {
-                        "enabled" => enabled = Some(map.next_value()?),
-                        "duration" => duration = Some(map.next_value()?),
-                        "display" => display = Some(map.next_value()?),
-                        _ => {
-                            let _: serde::de::IgnoredAny = map.next_value()?;
-                        }
-                    }
-                }
-
-                let enabled = enabled.ok_or_else(|| Error::missing_field("enabled"))?;
-                let duration: String = duration.ok_or_else(|| Error::missing_field("duration"))?;
-                let parsed = parse_duration(&duration).map_err(Error::custom)?;
-
-                Ok(RequestTimeoutConfig {
-                    enabled,
-                    duration,
-                    parsed,
-                    display: display.unwrap_or_else(|| false),
-                })
-            }
-        }
-
-        deserializer.deserialize_any(TimeoutLimitVisitor)
     }
 }

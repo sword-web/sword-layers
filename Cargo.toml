@@ -20,6 +20,7 @@ byte-unit = "5.2.0"
 console = "0.16.1"
 duration-str = "0.18.0"
 serde = { version = "1.0.228", features = ["derive"] }
+socketioxide = { version = "0.18.0", features = ["msgpack"] }
 
 tower = "0.5.2"
 tower-cookies = { version = "0.11.0", features = ["private", "signed"] }

@@ -26,7 +26,8 @@ pub struct RequestTimeoutLayer;
 
 impl RequestTimeoutLayer {
     pub fn new(config: &RequestTimeoutConfig) -> TimeoutLayerType {
-        let layer = TowerTimeoutLayer::with_status_code(StatusCode::REQUEST_TIMEOUT, config.parsed);
+        let layer =
+            TowerTimeoutLayer::with_status_code(StatusCode::REQUEST_TIMEOUT, config.timeout.parsed);
 
         fn timeout_mapper(response: Response) -> Response {
             if response.status().as_u16() == 408 {

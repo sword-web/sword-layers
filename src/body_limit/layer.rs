@@ -1,18 +1,16 @@
 use crate::{ResponseFnMapper, body_limit::BodyLimitConfig};
 
+use axum::{
+    body::Body,
+    response::{IntoResponse, Response},
+};
 use axum_responses::JsonResponse;
 use tower::{
     ServiceBuilder,
     layer::util::{Identity, Stack},
     util::MapResponseLayer,
 };
-
 use tower_http::limit::RequestBodyLimitLayer;
-
-use axum::{
-    body::Body,
-    response::{IntoResponse, Response},
-};
 
 type BodyLimitLayerType = ServiceBuilder<
     Stack<MapResponseLayer<ResponseFnMapper>, Stack<RequestBodyLimitLayer, Identity>>,
@@ -40,7 +38,7 @@ impl BodyLimitLayer {
         }
 
         ServiceBuilder::new()
-            .layer(RequestBodyLimitLayer::new(config.parsed))
+            .layer(RequestBodyLimitLayer::new(config.max_size.parsed))
             .map_response(map_body_limit_response as ResponseFnMapper)
     }
 }
