@@ -1,4 +1,4 @@
-use crate::DisplayConfig;
+use crate::{DisplayConfig, utils::TimeConfig};
 use console::style;
 use serde::{Deserialize, Serialize};
 
@@ -29,7 +29,7 @@ pub struct CorsConfig {
 
     /// The maximum age in seconds for CORS preflight responses.
     #[serde(rename = "max-age")]
-    pub max_age: Option<u64>,
+    pub max_age: Option<TimeConfig>,
 
     /// Whether to display the configuration details.
     pub display: bool,
@@ -42,27 +42,29 @@ impl DisplayConfig for CorsConfig {
         }
 
         println!("\n{}", style("CORS Configuration:").bold());
-
         println!("  ↳  Enabled: {}", self.enabled);
 
         if let Some(origins) = &self.allow_origins {
-            println!("  ↳  Allowed Origins: {origins:?}");
+            println!("  ↳  Origins: {}", origins.join(", "));
         }
 
         if let Some(methods) = &self.allow_methods {
-            println!("  ↳  Allowed Methods: {methods:?}");
+            println!("  ↳  Methods: {}", methods.join(", "));
         }
 
         if let Some(headers) = &self.allow_headers {
-            println!("  ↳  Allowed Headers: {headers:?}");
+            println!("  ↳  Headers: {}", headers.join(", "));
         }
 
+        let mut options = Vec::new();
         if let Some(credentials) = self.allow_credentials {
-            println!("  ↳  Allow Credentials: {credentials}");
+            options.push(format!("credentials: {}", credentials));
         }
-
-        if let Some(max_age) = self.max_age {
-            println!("  ↳  Max Age: {max_age}s");
+        if let Some(max_age) = &self.max_age {
+            options.push(format!("max age: {}", max_age.raw));
+        }
+        if !options.is_empty() {
+            println!("  ↳  Options: {}", options.join(" - "));
         }
     }
 }

@@ -1,7 +1,6 @@
 use super::CorsConfig;
 
 use axum::http::{HeaderName, HeaderValue, Method};
-use std::time::Duration;
 use tower_http::cors::CorsLayer as TowerCorsLayer;
 
 /// ### CORS Layer
@@ -45,8 +44,8 @@ impl CorsLayer {
             layer = layer.allow_headers(parsed_headers);
         }
 
-        if let Some(max_age) = config.max_age {
-            layer = layer.max_age(Duration::from_secs(max_age));
+        if let Some(max_age) = &config.max_age {
+            layer = layer.max_age(max_age.parsed);
         }
 
         layer

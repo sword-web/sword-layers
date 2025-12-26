@@ -58,17 +58,25 @@ impl DisplayConfig for ServeDirConfig {
 
         println!("\n{}", style("Serve Directory Configuration:").bold());
         println!("  ↳  Enabled: {}", self.enabled);
-        println!("  ↳  Static Directory: {}", self.static_dir);
-        println!("  ↳  Router Path: {}", self.router_path);
+
+        println!(
+            "  ↳  Paths: static: {} - router: {}",
+            self.static_dir, self.router_path
+        );
+
+        let mut options = Vec::new();
 
         if let Some(algorithm) = &self.compression_algorithm {
-            println!("  ↳  Compression Algorithm: {algorithm}");
+            options.push(format!("compression: {}", algorithm));
         }
         if let Some(chunk_size) = &self.chunk_size {
-            println!("  ↳  Chunk Size: {}", chunk_size.raw);
+            options.push(format!("chunk size: {}", chunk_size.raw));
         }
         if let Some(not_found) = &self.not_found_file {
-            println!("  ↳  Not Found File: {not_found}");
+            options.push(format!("404 file: {}", not_found));
+        }
+        if !options.is_empty() {
+            println!("  ↳  Options: {}", options.join(" - "));
         }
     }
 }
