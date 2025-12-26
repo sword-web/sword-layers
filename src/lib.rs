@@ -1,4 +1,5 @@
 pub mod helmet;
+pub mod not_found;
 pub mod prelude;
 pub mod utils;
 
