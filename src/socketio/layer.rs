@@ -8,14 +8,15 @@ use tower_layer::{Identity, Stack};
 pub struct SocketIoServerLayer;
 
 pub type SocketIoRequestFnMapperServiceLayer<T> =
-    ServiceBuilder<Stack<SocketIoLayer, Stack<MapRequestLayer<T>, Identity>>>;
+    ServiceBuilder<Stack<MapRequestLayer<T>, Identity>>;
 
 impl SocketIoServerLayer {
     pub fn new(
         config: SocketIoServerConfig,
     ) -> (
-        SocketIoRequestFnMapperServiceLayer<impl FnMut(Request) -> Request>,
+        SocketIoLayer,
         SocketIo,
+        SocketIoRequestFnMapperServiceLayer<impl FnMut(Request) -> Request>,
     ) {
         let mut layer_builder = SocketIo::builder();
 
@@ -77,14 +78,12 @@ impl SocketIoServerLayer {
 
         let (layer, io) = layer_builder.build_layer();
 
-        let layer = ServiceBuilder::new()
-            .map_request(move |mut req: Request| {
-                req.extensions_mut()
-                    .insert::<SocketIoParser>(config.parser.clone().unwrap_or_default());
-                req
-            })
-            .layer(layer.clone());
+        let extension_service = ServiceBuilder::new().map_request(move |mut req: Request| {
+            req.extensions_mut()
+                .insert::<SocketIoParser>(config.parser.clone().unwrap_or_default());
+            req
+        });
 
-        (layer, io)
+        (layer, io, extension_service)
     }
 }
