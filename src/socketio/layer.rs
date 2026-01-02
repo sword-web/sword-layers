@@ -1,11 +1,22 @@
-use crate::socketio::SocketIoServerConfig;
+use crate::socketio::{SocketIoParser, SocketIoServerConfig};
+use axum::extract::Request;
 use socketioxide::{ParserConfig, SocketIo, TransportType, layer::SocketIoLayer};
 use std::collections::HashSet;
+use tower::{ServiceBuilder, util::MapRequestLayer};
+use tower_layer::{Identity, Stack};
 
 pub struct SocketIoServerLayer;
 
+pub type SocketIoRequestFnMapperServiceLayer<T> =
+    ServiceBuilder<Stack<SocketIoLayer, Stack<MapRequestLayer<T>, Identity>>>;
+
 impl SocketIoServerLayer {
-    pub fn new(config: SocketIoServerConfig) -> (SocketIoLayer, SocketIo) {
+    pub fn new(
+        config: SocketIoServerConfig,
+    ) -> (
+        SocketIoRequestFnMapperServiceLayer<impl FnMut(Request) -> Request>,
+        SocketIo,
+    ) {
         let mut layer_builder = SocketIo::builder();
 
         if let Some(ack_timeout) = config.ack_timeout {
@@ -50,17 +61,30 @@ impl SocketIoServerLayer {
                 _ => {}
             };
         }
-        if let Some(parser) = config.parser {
-            match parser.as_str() {
-                "common" => layer_builder = layer_builder.with_parser(ParserConfig::common()),
-                "msgpack" => layer_builder = layer_builder.with_parser(ParserConfig::msgpack()),
-                _ => {}
+        if let Some(parser) = &config.parser {
+            match parser {
+                SocketIoParser::Common => {
+                    layer_builder = layer_builder.with_parser(ParserConfig::common())
+                }
+                SocketIoParser::MsgPack => {
+                    layer_builder = layer_builder.with_parser(ParserConfig::msgpack())
+                }
             }
         }
         if let Some(ws_read_buffer_size) = config.ws_read_buffer_size {
             layer_builder = layer_builder.ws_read_buffer_size(ws_read_buffer_size);
         }
 
-        layer_builder.build_layer() as (SocketIoLayer, SocketIo)
+        let (layer, io) = layer_builder.build_layer();
+
+        let layer = ServiceBuilder::new()
+            .map_request(move |mut req: Request| {
+                req.extensions_mut()
+                    .insert::<SocketIoParser>(config.parser.clone().unwrap_or_default());
+                req
+            })
+            .layer(layer.clone());
+
+        (layer, io)
     }
 }

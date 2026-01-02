@@ -3,6 +3,14 @@ use console::style;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum SocketIoParser {
+    #[default]
+    Common,
+    MsgPack,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(default)]
 pub struct SocketIoServerConfig {
     /// Whether to enable the Socket.IO server.
@@ -54,7 +62,7 @@ pub struct SocketIoServerConfig {
 
     /// The parser to use for encoding and decoding messages.
     /// Valid options are "common" and "msgpack".
-    pub parser: Option<String>,
+    pub parser: Option<SocketIoParser>,
 
     /// The size of the read buffer for the websocket transport.
     /// You can tweak this value depending on your use case.
@@ -96,7 +104,7 @@ impl DisplayConfig for SocketIoServerConfig {
         let mut limit_parts = Vec::new();
 
         if let Some(buffer) = &self.max_buffer_size {
-            limit_parts.push(format!("buffer: {} packets", buffer));
+            limit_parts.push(format!("buffer: {buffer} packets"));
         }
         if let Some(payload) = &self.max_payload {
             limit_parts.push(format!("payload: {}", payload.raw));
@@ -111,20 +119,29 @@ impl DisplayConfig for SocketIoServerConfig {
             connection_parts.push(format!("ping interval: {}", interval.raw));
         }
         if let Some(path) = &self.req_path {
-            connection_parts.push(format!("path: {}", path));
+            connection_parts.push(format!("path: {path}"));
         }
         if let Some(transports) = &self.transports {
             connection_parts.push(format!("transports: {}", transports.join(", ")));
         }
         if let Some(parser) = &self.parser {
-            connection_parts.push(format!("parser: {}", parser));
+            connection_parts.push(format!("parser: {parser}"));
         }
         if !connection_parts.is_empty() {
             println!("  ↳  Connection: {}", connection_parts.join(" - "));
         }
 
         if let Some(ws_size) = &self.ws_read_buffer_size {
-            println!("  ↳  WebSocket: read buffer {} bytes", ws_size);
+            println!("  ↳  WebSocket: read buffer {ws_size} bytes");
+        }
+    }
+}
+
+impl std::fmt::Display for SocketIoParser {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SocketIoParser::Common => write!(f, "common"),
+            SocketIoParser::MsgPack => write!(f, "msgpack"),
         }
     }
 }

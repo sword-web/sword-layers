@@ -3,7 +3,13 @@ pub mod not_found;
 pub mod prelude;
 pub mod utils;
 
-use axum::{body::Body, http::Response};
+use axum::{body::Body, response::Response};
+use tower::ServiceBuilder;
+use tower::util::MapResponseLayer;
+use tower_layer::{Identity, Stack};
+
+pub type ResponseFnMapperServiceLayer =
+    ServiceBuilder<Stack<MapResponseLayer<ResponseFnMapper>, Identity>>;
 
 pub(crate) type ResponseFnMapper = fn(Response<Body>) -> Response<Body>;
 

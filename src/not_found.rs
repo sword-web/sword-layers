@@ -9,8 +9,11 @@ use tower_layer::{Identity, Stack};
 
 pub struct NotFoundLayer;
 
+pub type ResponseFnMapperServiceLayer =
+    ServiceBuilder<Stack<MapResponseLayer<ResponseFnMapper>, Identity>>;
+
 impl NotFoundLayer {
-    pub fn new() -> ServiceBuilder<Stack<MapResponseLayer<ResponseFnMapper>, Identity>> {
+    pub fn new() -> ResponseFnMapperServiceLayer {
         ServiceBuilder::new().map_response(|r: Response| {
             if r.status() != StatusCode::NOT_FOUND {
                 return r;
