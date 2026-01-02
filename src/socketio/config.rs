@@ -2,7 +2,7 @@ use crate::{DisplayConfig, utils::*};
 use console::style;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, Copy)]
 #[serde(rename_all = "lowercase")]
 pub enum SocketIoParser {
     #[default]
