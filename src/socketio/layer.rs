@@ -55,16 +55,14 @@ impl SocketIoServerLayer {
                 _ => {}
             };
         }
-        if let Some(parser) = &config.parser {
-            match parser {
-                SocketIoParser::Common => {
-                    layer_builder = layer_builder.with_parser(ParserConfig::common())
-                }
-                SocketIoParser::MsgPack => {
-                    layer_builder = layer_builder.with_parser(ParserConfig::msgpack())
-                }
-            }
-        }
+
+        let parser_config = match config.parser {
+            SocketIoParser::Common(_) => ParserConfig::common(),
+            SocketIoParser::MsgPack(_) => ParserConfig::msgpack(),
+        };
+
+        layer_builder = layer_builder.with_parser(parser_config);
+
         if let Some(ws_read_buffer_size) = config.ws_read_buffer_size {
             layer_builder = layer_builder.ws_read_buffer_size(ws_read_buffer_size);
         }
@@ -78,8 +76,7 @@ impl SocketIoServerLayer {
         config: &SocketIoServerConfig,
     ) -> ServiceBuilder<Stack<MapRequestLayer<impl FnMut(Request) -> Request>, Identity>> {
         ServiceBuilder::new().map_request(move |mut req: Request| {
-            req.extensions_mut()
-                .insert::<SocketIoParser>(config.parser.clone().unwrap_or_default());
+            req.extensions_mut().insert::<SocketIoParser>(config.parser);
             req
         })
     }

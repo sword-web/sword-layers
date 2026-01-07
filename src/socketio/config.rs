@@ -1,14 +1,10 @@
+use std::str::FromStr;
+
 use crate::{DisplayConfig, utils::*};
 use console::style;
 use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default, Copy)]
-#[serde(rename_all = "lowercase")]
-pub enum SocketIoParser {
-    #[default]
-    Common,
-    MsgPack,
-}
+use socketioxide_parser_common::CommonParser;
+use socketioxide_parser_msgpack::MsgPackParser;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(default)]
@@ -60,9 +56,10 @@ pub struct SocketIoServerConfig {
     /// Valid options are "polling" and "websocket".
     pub transports: Option<Vec<String>>,
 
+    #[serde(default)]
     /// The parser to use for encoding and decoding messages.
     /// Valid options are "common" and "msgpack".
-    pub parser: Option<SocketIoParser>,
+    pub parser: SocketIoParser,
 
     /// The size of the read buffer for the websocket transport.
     /// You can tweak this value depending on your use case.
@@ -124,9 +121,9 @@ impl DisplayConfig for SocketIoServerConfig {
         if let Some(transports) = &self.transports {
             connection_parts.push(format!("transports: {}", transports.join(", ")));
         }
-        if let Some(parser) = &self.parser {
-            connection_parts.push(format!("parser: {parser}"));
-        }
+
+        connection_parts.push(format!("parser: {}", self.parser));
+
         if !connection_parts.is_empty() {
             println!("  ↳  Connection: {}", connection_parts.join(" - "));
         }
@@ -137,11 +134,54 @@ impl DisplayConfig for SocketIoServerConfig {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum SocketIoParser {
+    Common(CommonParser),
+    MsgPack(MsgPackParser),
+}
+
+impl Default for SocketIoParser {
+    fn default() -> Self {
+        SocketIoParser::Common(CommonParser::default())
+    }
+}
+
+impl FromStr for SocketIoParser {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "common" => Ok(SocketIoParser::Common(CommonParser::default())),
+            "msgpack" => Ok(SocketIoParser::MsgPack(MsgPackParser::default())),
+            _ => Err(format!("invalid Socket.IO parser: {s}")),
+        }
+    }
+}
+
 impl std::fmt::Display for SocketIoParser {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            SocketIoParser::Common => write!(f, "common"),
-            SocketIoParser::MsgPack => write!(f, "msgpack"),
+            SocketIoParser::Common(_) => write!(f, "common"),
+            SocketIoParser::MsgPack(_) => write!(f, "msgpack"),
         }
+    }
+}
+
+impl<'se> Serialize for SocketIoParser {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+impl<'de> Deserialize<'de> for SocketIoParser {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        SocketIoParser::from_str(&s).map_err(serde::de::Error::custom)
     }
 }

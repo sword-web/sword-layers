@@ -1569,6 +1569,8 @@ dependencies = [
  "duration-str",
  "serde",
  "socketioxide",
+ "socketioxide-parser-common",
+ "socketioxide-parser-msgpack",
  "tower",
  "tower-cookies",
  "tower-http",
