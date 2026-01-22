@@ -1,7 +1,7 @@
 use super::CorsConfig;
 
 use axum::http::{HeaderName, HeaderValue, Method};
-use tower_http::cors::CorsLayer as TowerCorsLayer;
+use tower_http::cors::{Any, CorsLayer as TowerCorsLayer};
 
 /// ### CORS Layer
 ///
@@ -27,6 +27,10 @@ impl CorsLayer {
                 .filter_map(|o| HeaderValue::from_str(o).ok())
                 .collect();
 
+            if origin.iter().any(|o| o == "*") {
+                layer = layer.allow_origin(Any);
+            }
+
             layer = layer.allow_origin(parsed_origin);
         }
 
@@ -34,12 +38,20 @@ impl CorsLayer {
             let parsed_methods: Vec<Method> =
                 methods.iter().filter_map(|m| m.parse().ok()).collect();
 
+            if methods.iter().any(|m| m == "*") {
+                layer = layer.allow_methods(Any);
+            }
+
             layer = layer.allow_methods(parsed_methods);
         }
 
         if let Some(headers) = &config.allow_headers {
             let parsed_headers: Vec<HeaderName> =
                 headers.iter().filter_map(|h| h.parse().ok()).collect();
+
+            if headers.iter().any(|h| h == "*") {
+                layer = layer.allow_headers(Any);
+            }
 
             layer = layer.allow_headers(parsed_headers);
         }
