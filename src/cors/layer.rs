@@ -22,38 +22,38 @@ impl CorsLayer {
         }
 
         if let Some(origin) = &config.allow_origins {
-            let parsed_origin: Vec<HeaderValue> = origin
-                .iter()
-                .filter_map(|o| HeaderValue::from_str(o).ok())
-                .collect();
-
             if origin.iter().any(|o| o == "*") {
                 layer = layer.allow_origin(Any);
-            }
+            } else {
+                let parsed_origin: Vec<HeaderValue> = origin
+                    .iter()
+                    .filter_map(|o| HeaderValue::from_str(o).ok())
+                    .collect();
 
-            layer = layer.allow_origin(parsed_origin);
+                layer = layer.allow_origin(parsed_origin);
+            }
         }
 
         if let Some(methods) = &config.allow_methods {
-            let parsed_methods: Vec<Method> =
-                methods.iter().filter_map(|m| m.parse().ok()).collect();
-
             if methods.iter().any(|m| m == "*") {
                 layer = layer.allow_methods(Any);
-            }
+            } else {
+                let parsed_methods: Vec<Method> =
+                    methods.iter().filter_map(|m| m.parse().ok()).collect();
 
-            layer = layer.allow_methods(parsed_methods);
+                layer = layer.allow_methods(parsed_methods);
+            }
         }
 
         if let Some(headers) = &config.allow_headers {
-            let parsed_headers: Vec<HeaderName> =
-                headers.iter().filter_map(|h| h.parse().ok()).collect();
-
             if headers.iter().any(|h| h == "*") {
                 layer = layer.allow_headers(Any);
-            }
+            } else {
+                let parsed_headers: Vec<HeaderName> =
+                    headers.iter().filter_map(|h| h.parse().ok()).collect();
 
-            layer = layer.allow_headers(parsed_headers);
+                layer = layer.allow_headers(parsed_headers);
+            }
         }
 
         if let Some(max_age) = &config.max_age {
