@@ -13,14 +13,6 @@ pub type ResponseFnMapperServiceLayer =
 
 pub(crate) type ResponseFnMapper = fn(Response<Body>) -> Response<Body>;
 
-pub mod socketio {
-    mod config;
-    mod layer;
-
-    pub use config::*;
-    pub use layer::*;
-}
-
 pub mod cookies {
     pub use tower_cookies::*;
 }

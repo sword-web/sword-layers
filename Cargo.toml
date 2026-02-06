@@ -1,6 +1,6 @@
 [package]
 name = "sword-layers"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2024"
 authors = ["luciano revillod <lrevillod2022@alu.uct.cl>"]
 description = "Tower layers for the Sword web framework"
@@ -15,14 +15,11 @@ license = "MIT"
 [dependencies]
 axum = "0.8.7"
 axum-helmet = "0.2.0"
-axum_responses = "0.5.3"
+axum_responses = "0.5.4"
 byte-unit = "5.2.0"
 console = "0.16.1"
 duration-str = "0.18.0"
 serde = { version = "1.0.228", features = ["derive"] }
-socketioxide = { version = "0.18.0", features = ["msgpack"] }
-socketioxide-parser-common = "0.17.0"
-socketioxide-parser-msgpack = "0.17.0"
 
 tower = "0.5.2"
 tower-cookies = { version = "0.11.0", features = ["private", "signed"] }
